@@ -1,5 +1,5 @@
 
-interface BMIinput {
+export interface BMIinput {
     height: number,
     weight: number,
 };
@@ -49,3 +49,5 @@ try {
     const errorMsg = error instanceof Error ? 'Error: ' + error.message : 'Something went wrong';
     console.log(errorMsg)
 }
+
+export default calculateBmi;
