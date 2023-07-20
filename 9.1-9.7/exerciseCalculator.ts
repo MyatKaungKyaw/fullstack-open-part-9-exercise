@@ -21,7 +21,7 @@ const calculateExercises = ({ dailyHours, targetHour }: exerciseInput): exercise
     const periodLength = dailyHours.length;
     const averageHour = dailyHours.reduce((total, hour) => total += hour, 0) / dailyHours.length;
     const rateResult = ((): rate => {
-        const percent = averageHour / targetHour
+        const percent = averageHour / targetHour;
         if (percent >= 1) {
             return {
                 rating: 3,
@@ -63,19 +63,19 @@ const parseECArgs = (args: string[]): exerciseInput => {
     if (args.length < 4) throw new Error('not enough arguments');
     const isAllArgsNum = args.slice(2).every(arg => !isNaN(Number(arg)));
     if(isAllArgsNum){
-        const numArgs = args.slice(2).map(arg => Number(arg))
+        const numArgs = args.slice(2).map(arg => Number(arg));
         return {
             dailyHours:  numArgs.slice(1),
             targetHour: numArgs[0],
-        }
+        };
     }
-    throw new Error('Provided valuse are not number')
-}
+    throw new Error('Provided valuse are not number');
+};
 
 try {
-    const exerciseInput = parseECArgs(process.argv)
-    console.log(calculateExercises(exerciseInput))
+    const exerciseInput = parseECArgs(process.argv);
+    console.log(calculateExercises(exerciseInput));
 } catch (error: unknown) {
     const errorMessage = error instanceof Error ? 'Error: ' + error.message : 'Something went wrong';
-    console.log(errorMessage)
+    console.log(errorMessage);
 }

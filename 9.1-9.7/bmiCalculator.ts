@@ -2,7 +2,7 @@
 export interface BMIinput {
     height: number,
     weight: number,
-};
+}
 
 const parseArguments = (args: string[]): BMIinput => {
     if (args.length > 4) throw new Error('not enough arguments');
@@ -11,9 +11,9 @@ const parseArguments = (args: string[]): BMIinput => {
         return {
             height: Number(args[2]),
             weight: Number(args[3]),
-        }
+        };
     } else {
-        throw new Error('Provided values are not number.')
+        throw new Error('Provided values are not number.');
     }
 };
 
@@ -23,7 +23,7 @@ const calculateBmi = ({ height, weight }: BMIinput): string => {
     if (BMI < 16 && BMI < 0) {
         return 'Underweight (Severe thinness)';
     } else if (BMI < 17) {
-        return 'Underweight (Moderate thinness)'
+        return 'Underweight (Moderate thinness)';
     } else if (BMI < 18.5) {
         return 'Underweight (Mild thinness)';
     } else if (BMI < 25) {
@@ -43,11 +43,11 @@ const calculateBmi = ({ height, weight }: BMIinput): string => {
 // console.log(calculateBmi(180, 74))\
 
 try {
-    const BMIinput = parseArguments(process.argv)
-    console.log(calculateBmi(BMIinput))
+    const BMIinput = parseArguments(process.argv);
+    console.log(calculateBmi(BMIinput));
 } catch (error: unknown) {
     const errorMsg = error instanceof Error ? 'Error: ' + error.message : 'Something went wrong';
-    console.log(errorMsg)
+    console.log(errorMsg);
 }
 
 export default calculateBmi;
