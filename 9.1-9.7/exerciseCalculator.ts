@@ -16,7 +16,7 @@ interface exerciseInput {
     targetHour: number,
 }
 
-const calculateExercises = ({ dailyHours, targetHour }: exerciseInput): exercisesResult => {
+export const calculateExercises = ({ dailyHours, targetHour }: exerciseInput): exercisesResult => {
     const trainingDays = dailyHours.filter(hour => hour > 0).length;
     const periodLength = dailyHours.length;
     const averageHour = dailyHours.reduce((total, hour) => total += hour, 0) / dailyHours.length;

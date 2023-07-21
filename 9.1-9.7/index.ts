@@ -1,7 +1,11 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import calculateBmi from './bmiCalculator';
+import { calculateExercises } from './exerciseCalculator';
 
 const app = express();
+app.use(bodyParser.json());
+
 app.get('hello', (_req, res) => {
     res.send('Hello Full Stack!');
 });
@@ -21,8 +25,21 @@ app.get('/bmi', (req, res) => {
     });
 });
 
-app.post('/exercise',(req,res) =>{
+app.post('/exercises', (req, res) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { daily_exercises, target } = req.body;
 
+    if (daily_exercises == null || target == null) return { error: "parameters missing" };
+    if (!Array.isArray(daily_exercises)) return { error: "malformatted parameters" };
+
+    const dailyHours = daily_exercises.map(hour => Number(hour));
+    const targetHour = Number(target);
+
+    const isNaNDailyHours = dailyHours.every(hour => isNaN(hour));
+    if (isNaN(targetHour) || isNaNDailyHours) return { error: "malformatted parameters" };
+
+    const result = calculateExercises({dailyHours,targetHour,});
+    return res.send(result);
 });
 
 const PORT = 3002;
