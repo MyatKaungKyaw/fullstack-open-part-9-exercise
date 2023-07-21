@@ -1,10 +1,9 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import calculateBmi from './bmiCalculator';
 import { calculateExercises } from './exerciseCalculator';
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.get('hello', (_req, res) => {
     res.send('Hello Full Stack!');
@@ -29,14 +28,15 @@ app.post('/exercises', (req, res) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { daily_exercises, target } = req.body;
 
-    if (daily_exercises == null || target == null) return { error: "parameters missing" };
-    if (!Array.isArray(daily_exercises)) return { error: "malformatted parameters" };
+    if (daily_exercises == null || target == null) return res.send({ error: "parameters missing" });
+    if (!Array.isArray(daily_exercises)) return res.send({ error: "malformatted parameters" });
 
     const dailyHours = daily_exercises.map(hour => Number(hour));
     const targetHour = Number(target);
 
-    const isNaNDailyHours = dailyHours.every(hour => isNaN(hour));
-    if (isNaN(targetHour) || isNaNDailyHours) return { error: "malformatted parameters" };
+    const isNaNDailyHours = dailyHours.every(hour => !isNaN(hour));
+    console.log(dailyHours,isNaNDailyHours);
+    if (isNaN(targetHour) || !isNaNDailyHours) return res.send({ error: "malformatted parameters" });
 
     const result = calculateExercises({dailyHours,targetHour,});
     return res.send(result);
