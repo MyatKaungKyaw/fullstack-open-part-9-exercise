@@ -11,7 +11,7 @@ interface HeaderProps {
 const Content = (props: CoursePartsProps) => (
   <>
     {props.courseParts.map((coursePart) => (
-      <p>
+      <p key={coursePart.name}>
         {coursePart.name} {coursePart.exerciseCount}
       </p>
     ))}
@@ -27,7 +27,7 @@ interface CoursePartsProps {
   courseParts: CoursePart[];
 }
 
-const Total = (props:CoursePartsProps) => (
+const Total = (props: CoursePartsProps) => (
   <>
     Number of exercises{" "}
     {props.courseParts.reduce((carry, part) => carry + part.exerciseCount, 0)}
@@ -53,17 +53,9 @@ const App = () => {
 
   return (
     <div>
-      <h1>{courseName}</h1>
-      <p>
-        {courseParts[0].name} {courseParts[0].exerciseCount}
-      </p>
-      <p>
-        {courseParts[1].name} {courseParts[1].exerciseCount}
-      </p>
-      <p>
-        {courseParts[2].name} {courseParts[2].exerciseCount}
-      </p>
-      <p></p>
+      <Header header={courseName}/>
+      <Content courseParts={courseParts}/>
+      <Total courseParts={courseParts}/>
     </div>
   );
 };
