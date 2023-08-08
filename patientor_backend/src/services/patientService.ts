@@ -13,6 +13,12 @@ const getPatients = ():NonSensitivePatient[] => {
     }));
 };
 
+const getPatientWithId = (id:string):Patient =>{
+    const patient = patients.find(p => p.id === id);
+    if(patient) return patient;
+    throw new Error('Patient with given id is not foud.');
+};
+
 const addPatients = (entry:NewPatient):Patient => {
     const newPatient = {
         id : uuidv4(),
@@ -25,4 +31,5 @@ const addPatients = (entry:NewPatient):Patient => {
 export default {
     getPatients,
     addPatients,
+    getPatientWithId,
 };

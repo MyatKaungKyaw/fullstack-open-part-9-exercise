@@ -45,6 +45,7 @@ export const toNewPatient = (object: unknown): NewPatient => {
             ssn: parseString(object.ssn,'SSN'),
             gender: parseGender(object.gender),
             occupation: parseString(object.occupation,'occupation'),
+            entries: [],
         };
     }
     throw new Error('Incorrect data: some fields are missing');
