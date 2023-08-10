@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState} from 'react';
 import {
   Box,
   Table,
@@ -10,7 +10,7 @@ import {
   TableBody,
 } from '@mui/material';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { PatientFormValues, Patient } from '../../types';
 import AddPatientModal from '../AddPatientModal';
@@ -27,6 +27,7 @@ interface Props {
 const PatientListPage = ({ patients, setPatients }: Props) => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [error, setError] = useState<string>();
+  const navigate = useNavigate();
 
   const openModal = (): void => setModalOpen(true);
 
@@ -59,6 +60,10 @@ const PatientListPage = ({ patients, setPatients }: Props) => {
     }
   };
 
+  const patientClick = (id: string) => {
+    navigate(`/patients/${id}`);
+  };
+
   return (
     <div className="App">
       <Box>
@@ -77,12 +82,16 @@ const PatientListPage = ({ patients, setPatients }: Props) => {
         </TableHead>
         <TableBody>
           {Object.values(patients).map((patient: Patient) => (
-            <TableRow
-              key={patient.id}
-              component={Link}
-              to={`/patients/${patient.id}`}
-            >
-              <TableCell>{patient.name}</TableCell>
+            <TableRow key={patient.id}>
+              <TableCell>
+                <Button
+                  onClick={() => {
+                    patientClick(patient.id);
+                  }}
+                >
+                  {patient.name}
+                </Button>
+              </TableCell>
               <TableCell>{patient.gender}</TableCell>
               <TableCell>{patient.occupation}</TableCell>
               <TableCell>
