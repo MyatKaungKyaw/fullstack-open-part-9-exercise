@@ -45,7 +45,6 @@ const isNewEntries = (entries:Array<unknown>):entries is NewEntry[] =>{
 };
 
 const parseNewEntries = (entries:unknown): NewEntry[]|[]=>{
-    console.log(entries);
     if(Array.isArray(entries)){ 
         if(isNewEntries.length == 0) return [];
         if(isNewEntries(entries)){
