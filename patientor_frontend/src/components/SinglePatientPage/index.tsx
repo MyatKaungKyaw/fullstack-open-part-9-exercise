@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Typography } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 import FemaleRoundedIcon from '@mui/icons-material/FemaleRounded';
 import MaleRoundedIcon from '@mui/icons-material/MaleRounded';
 import { Gender, Patient } from '../../types';
 import { useParams } from 'react-router-dom';
 
 import patientService from '../../services/patients';
+import Entries from './Entries';
 
 const SinglePatientPage = () => {
   const [patient, setPatient] = useState<Patient>();
@@ -30,7 +31,7 @@ const SinglePatientPage = () => {
   }
 
   return (
-    <div>
+    <Container>
       <Typography variant="h2">
         {patient.name}
         {patient.gender === Gender.Female ? (
@@ -46,8 +47,8 @@ const SinglePatientPage = () => {
         <Typography variant="body1">date of birth: {patient.ssn}</Typography>
       )}
       <Typography variant="body1">occupation: {patient.occupation}</Typography>
-    </div>
+      {patient.entries.length !== 0 && <Entries entries={patient.entries} />}
+    </Container>
   );
 };
-
 export default SinglePatientPage;
