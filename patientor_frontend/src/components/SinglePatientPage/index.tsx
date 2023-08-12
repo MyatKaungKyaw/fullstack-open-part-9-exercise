@@ -6,7 +6,7 @@ import { Gender, Patient } from '../../types';
 import { useParams } from 'react-router-dom';
 
 import patientService from '../../services/patients';
-import Entries from './Entries';
+import Entries from '../EntryListPage';
 
 const SinglePatientPage = () => {
   const [patient, setPatient] = useState<Patient>();
