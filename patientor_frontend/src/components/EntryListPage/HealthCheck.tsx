@@ -5,9 +5,9 @@ interface Props {
     entry: HealthCheckEntry;
 }
 
-const HealthCheck = ({entry}:Props) => {
-    return(<>
-        <Typography variant='body1'></Typography>
+const HealthCheck = ({ entry }: Props) => {
+    return (<>
+        <Typography variant='body1'>health check rating: {entry.healthCheckRating}</Typography>
     </>)
 }
 

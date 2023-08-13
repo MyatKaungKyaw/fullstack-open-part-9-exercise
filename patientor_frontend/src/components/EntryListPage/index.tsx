@@ -8,10 +8,13 @@ import {
   Typography,
 } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
-import { Diagnosis, Entry } from '../../types';
+import { Diagnosis, Entry, EntryType } from '../../types';
 
 import diagnosesService from '../../services/diagnoses';
 import { useEffect, useState } from 'react';
+import HealthCheck from './HealthCheck';
+import OccupationalHealthcare from './OccupationalHealthcare';
+import Hospital from './Hospital';
 
 const descriptionStyle = {
   root: {
@@ -38,12 +41,26 @@ const Entries = ({ entries }: Props) => {
     return diagnose != null ? diagnose.name : '';
   };
 
+  const ExtendEntry = (entry: Entry) => {
+    switch (entry.type) {
+      case EntryType.HealthCheck:
+        return <HealthCheck entry={entry} />
+      case EntryType.OccupationalHealthCare:
+        return <OccupationalHealthcare entry={entry} />
+      case EntryType.Hospital:
+        return <Hospital entry={entry} />
+      default:
+        const _exhaustiveCheck: never = entry;
+        return _exhaustiveCheck;
+    }
+  }
+
   return (
     <>
       <Typography variant="h3">Entries</Typography>
       <List>
         {entries.map((entry) => (
-          <>
+          <div key={entry.id}>
             <ListItem key={entry.id} component={Paper}>
               <ListItemText>
                 <Typography variant="body1">
@@ -71,10 +88,13 @@ const Entries = ({ entries }: Props) => {
                     ))}
                   </List>
                 )}
+                {
+                  ExtendEntry(entry)
+                }
               </ListItemText>
             </ListItem>
             <Divider />
-          </>
+          </div>
         ))}
       </List>
     </>

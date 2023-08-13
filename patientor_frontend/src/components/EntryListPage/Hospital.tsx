@@ -2,12 +2,14 @@ import { Typography } from "@mui/material"
 import { HospitalEntry } from "../../types";
 
 interface Props {
-    entry:HospitalEntry;
+    entry: HospitalEntry;
 }
 
-const Hospital = ({entry}:Props) => {
+const Hospital = ({ entry }: Props) => {
     return (<>
-        <Typography variant='body1'></Typography>
+        <Typography variant='h4'>Discharge</Typography>
+        <Typography variant='body1'>date: {entry.discharge.date}</Typography>
+        <Typography variant='body1'>criteria: {entry.discharge.criteria}</Typography>
     </>)
 }
 
