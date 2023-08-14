@@ -72,6 +72,9 @@ const Entries = ({ entries }: Props) => {
                 >
                   {' ' + entry.description}
                 </Typography>
+                {
+                  ExtendEntry(entry)
+                }
                 <Typography variant="body1">diagnose by {entry.specialist}</Typography>
                 {entry?.diagnosisCodes && (
                   <List>
@@ -88,9 +91,6 @@ const Entries = ({ entries }: Props) => {
                     ))}
                   </List>
                 )}
-                {
-                  ExtendEntry(entry)
-                }
               </ListItemText>
             </ListItem>
             <Divider />
