@@ -1,4 +1,89 @@
-import { Gender, HealthCheckType, NewEntry, NewPatient } from "./types";
+import { Gender, EntryType, NewEntry, NewPatient, HealthCheckRating, Diagnosis,  BaseEntry,} from "./types";
+
+const parseBaseEntry = (entry:object):Omit<BaseEntry,'id'>=>{
+    if('type' in entry && 'description' in entry && 'date' in entry && 'specialist' in entry){
+       return ({
+        description: parseString(entry.description,'description'),
+        date: parseDate(entry.date,'date'),
+        specialist: parseString(entry.specialist,'specialist'),
+        ...('diagnosisCodes' in entry && {diagnosisCodes: parseDiagnosisCodes(entry.diagnosisCodes)}),
+       });
+    }
+    throw new Error('Incorrect Entry: some fields are missing');    
+};
+
+const parseDiagnosisCodes = (object: unknown): Array<Diagnosis['code']> =>  {
+  if (!object || typeof object !== 'object' || !('diagnosisCodes' in object)) {
+    // we will just trust the data to be in correct form
+    return [] as Array<Diagnosis['code']>;
+  }
+
+  return object.diagnosisCodes as Array<Diagnosis['code']>;
+};
+
+export const parseNewEntry=(entry:unknown): NewEntry => {
+    if(isObject(entry) && 'type' in entry && isEntryType(entry.type)){
+        switch (entry.type) {
+            case EntryType.HealthCheck:
+               return parseHealthCheckEntry(entry);
+            case EntryType.OccupationalHealthCare:
+                return parseOccupationalHealthCareEntry(entry);
+            case EntryType.Hospital:
+                return parseHospitalEntry(entry);
+        }
+    }
+    throw new Error('Incorrect Entry: some fields are missing');
+};
+
+const isEntryType = (type:unknown): type is EntryType => {
+    return typeof type === 'string' && Object.values(EntryType).map(h => h.toString()).includes(type);
+};
+
+const parseHospitalEntry = (entry:object): NewEntry => {
+    if('type' in entry && isEntryType(entry.type) && entry.type === EntryType.Hospital && 'discharge' in entry && isObject(entry.discharge) && 'date' in entry.discharge && 'criteria' in entry.discharge){
+        return ({
+            ...parseBaseEntry(entry),
+            type: entry.type,
+            discharge: {
+                date: parseDate(entry.discharge.date,'date'),
+                criteria: parseString(entry.discharge.criteria,'criteria'),
+            },
+        });
+    }
+    throw new Error('Incorrect or missing HospitalEntry');
+};
+
+const parseOccupationalHealthCareEntry = (entry:object):NewEntry=>{
+    if('type' in entry && isEntryType(entry.type) && entry.type === EntryType.OccupationalHealthCare && 'employerName' in entry){
+        return ({
+            ...parseBaseEntry(entry),
+            type: entry.type,
+            employerName: parseString(entry.employerName,'employerName'),
+            ...('sickLeave' in entry && isObject(entry.sickLeave) && 'startDate' in entry.sickLeave && 'endDate' in entry.sickLeave && {
+                sickLeave:{
+                    startDate: parseDate(entry.sickLeave.startDate,'startDate'),
+                    endDate: parseDate(entry.sickLeave.endDate,'endDate'),
+                },
+            })
+        });
+    }
+    throw new Error('Incorrect or missing OccupationalHealthCareEntry');
+};
+
+const isHealthCheckRating = (rating:number): rating is HealthCheckRating => {
+    return Object.keys(HealthCheckRating).map(r => Number(r)).filter(r => !isNaN(r)).includes(rating);
+};
+
+const parseHealthCheckEntry = (entry: object):NewEntry=>{
+    if('type' in entry && isEntryType(entry.type) && entry.type === EntryType.HealthCheck && 'rating' in entry && !isNaN(Number(entry.rating)) && isHealthCheckRating(Number(entry.rating))){
+        return ({
+            ...parseBaseEntry(entry),
+            type: entry.type,
+            healthCheckRating: Number(entry.rating),
+        });
+    }
+    throw new Error('Incorrect or missing HealthCheckEntry');
+};
 
 const isString = (text: unknown): text is string => {
     return typeof text === 'string' || text instanceof String;
@@ -15,11 +100,11 @@ const parseString = (str: unknown, key: string): string => {
     throw new Error(`Incorrect or missing ${key}`);
 };
 
-const parseDateOfBirth = (dateOfBirth: unknown): string =>{
-    if(isString(dateOfBirth) && isDate(dateOfBirth)){
-        return dateOfBirth;
+const parseDate = (date: unknown, key: string): string =>{
+    if(isString(date) && isDate(date)){
+        return date;
     }
-    throw new Error('Incorrect or missing date');
+    throw new Error(`Incorrect or missing ${key}`);
 };
 
 const isDate = (date:string):boolean =>{
@@ -37,19 +122,10 @@ const parseGender=(gender:unknown) : Gender => {
     throw new Error('Incorrect or missing gender');
 };
 
-const isNewEntries = (entries:Array<unknown>):entries is NewEntry[] =>{
-    return entries.every(entry => (isObject(entry) &&
-      'type' in entry && 
-      typeof entry.type === 'string' && 
-      Object.values(HealthCheckType).map(h => h.toString()).includes(entry.type)));
-};
-
 const parseNewEntries = (entries:unknown): NewEntry[]|[]=>{
     if(Array.isArray(entries)){ 
-        if(isNewEntries.length == 0) return [];
-        if(isNewEntries(entries)){
-            return entries;
-        }
+        if(entries.length == 0) return [];
+        return entries.map(entry => parseNewEntry(entry));
     }
     throw new Error(`Incorrect or missing entries`);
 };
@@ -62,7 +138,7 @@ export const toNewPatient = (object: unknown): NewPatient => {
     if ('name' in object && 'dateOfBirth' in object && 'ssn' in object && 'gender' in object && 'occupation' in object && 'entries' in object) {
         return {
             name: parseString(object.name,'name'),
-            dateOfBirth: parseDateOfBirth(object.dateOfBirth),
+            dateOfBirth: parseDate(object.dateOfBirth,'dateOfBirth'),
             ssn: parseString(object.ssn,'SSN'),
             gender: parseGender(object.gender),
             occupation: parseString(object.occupation,'occupation'),
