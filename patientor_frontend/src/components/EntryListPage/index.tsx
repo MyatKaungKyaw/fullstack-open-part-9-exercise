@@ -57,7 +57,7 @@ const Entries = ({ entries }: Props) => {
 
   return (
     <>
-      <Typography variant="h3">Entries</Typography>
+      <Typography variant="h5">Entries</Typography>
       <List>
         {entries.map((entry) => (
           <div key={entry.id}>

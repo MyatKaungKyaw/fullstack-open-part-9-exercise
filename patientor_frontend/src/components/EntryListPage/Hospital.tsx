@@ -7,7 +7,7 @@ interface Props {
 
 const Hospital = ({ entry }: Props) => {
     return (<>
-        <Typography variant='h4'>Discharge</Typography>
+        <Typography variant='h6'>Discharge</Typography>
         <Typography variant='body1'>date: {entry.discharge.date}</Typography>
         <Typography variant='body1'>criteria: {entry.discharge.criteria}</Typography>
     </>)

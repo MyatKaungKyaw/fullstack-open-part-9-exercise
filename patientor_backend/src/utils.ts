@@ -82,7 +82,6 @@ const parseHealthCheckEntry = (entry: object): NewEntry => {
             healthCheckRating: Number(entry.healthCheckRating),
         });
     }
-    console.log('entry',entry)
     throw new Error('Incorrect or missing HealthCheckEntry');
 };
 
@@ -123,7 +122,7 @@ const parseGender = (gender: unknown): Gender => {
     throw new Error('Incorrect or missing gender');
 };
 
-const parseNewEntries = (entries: unknown): NewEntry[] | [] => {
+const parseNewEntries = (entries: unknown): NewEntry[]=> {
     if (Array.isArray(entries)) {
         if (entries.length == 0) return [];
         return entries.map(entry => parseNewEntry(entry));
