@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Button, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Alert, Button, Typography } from '@mui/material';
 import FemaleRoundedIcon from '@mui/icons-material/FemaleRounded';
 import MaleRoundedIcon from '@mui/icons-material/MaleRounded';
 import { Gender, NewEntry, Patient } from '../../types';
@@ -17,6 +17,14 @@ const SinglePatientPage = () => {
 
   const { id } = useParams();
 
+  useEffect(() => {
+    if (typeof id === 'string') {
+      patientService.getPatientWithId(id).then((p) => {
+        setPatient(p);
+      });
+    }
+  }, [id]);
+
   if (!id && typeof id !== 'string')
     return (
       <div>
@@ -26,10 +34,14 @@ const SinglePatientPage = () => {
 
   const submitNewEntry = async (entry: NewEntry) => {
     try {
-      const newEntry = await patientService.createEntries(id,entry);
-      const newPatient = patient;
-      newPatient?.entries.concat(newEntry);
-      setPatient(newPatient)
+      const newEntry = await patientService.createEntries(id, entry);
+
+      if (patient == null) return;
+      const entries = patient.entries.concat(newEntry);
+      setPatient({
+        ...patient,
+        entries,
+      });
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         if (e?.response?.data && typeof e?.response?.data === 'string') {
@@ -49,12 +61,14 @@ const SinglePatientPage = () => {
     }
   };
 
-  const closeEntryModal = (): void => setEntryModalOpen(false);
+  const closeEntryModal = () => {
+    setEntryModalOpen(false);
+    setError(undefined);
+  };
+
   const openEntryModal = (): void => setEntryModalOpen(true);
 
-  patientService.getPatientWithId(id).then((p) => {
-    setPatient(p);
-  });
+  const showError = (err: string): void => setError(err);
 
   if (typeof patient === 'undefined') {
     return (
@@ -85,9 +99,10 @@ const SinglePatientPage = () => {
         <AddEntryModal
           onClose={closeEntryModal}
           onSubmit={submitNewEntry}
-          error={error}
+          showError={showError}
         />
       )}
+      {error && <Alert severity="error">{error}</Alert>}
       {!entryModalOpen && (
         <Button
           variant="contained"

@@ -1,51 +1,72 @@
-import { SyntheticEvent, useEffect, useState, ChangeEvent } from 'react';
-import { Box, Button, TextField } from '@mui/material';
+import { SyntheticEvent, useState, ChangeEvent } from 'react';
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-import { Diagnosis, EntryType, HealthCheckRating, NewEntry } from '../../types';
-import diagnosesService from '../../services/diagnoses';
+import {
+  Diagnosis,
+  EntryType,
+  HealthCheckEntry,
+  HealthCheckRating,
+} from '../../types';
+import {
+  parseDate,
+  parseDiagnosisCodes,
+  parseHealthCheckRating,
+} from './utils';
+import dayjs, { Dayjs } from 'dayjs';
 
 interface Props {
-  onSubmit: (entry: NewEntry) => void;
+  showError: (err: string) => void;
+  onSubmit: (entry: Omit<HealthCheckEntry, 'id'>) => void;
   onCancel: () => void;
 }
 
-const AddHealthCheckEntryForm = ({ onSubmit, onCancel }: Props) => {
+const AddHealthCheckEntryForm = ({ showError, onSubmit, onCancel }: Props) => {
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState<Dayjs | null>(dayjs());
   const [specialist, setSpecialist] = useState('');
   const [diagnosisCodes, setDiagnosisCodes] = useState<
     Array<Diagnosis['code']>
   >([]);
-  const [healthCheckRating, setHealthCheckRating] = useState(
-    HealthCheckRating.Healthy
-  );
-  const [codes, setCodes] = useState<Array<Diagnosis['code']>>([]);
+  const [healthCheckRating, setHealthCheckRating] = useState<HealthCheckRating|''>('');
 
-  useEffect(() => {
-    diagnosesService.getAll().then((d) => {
-      const codes = d.map((d) => d.code);
-      setCodes(codes);
-    });
-  }, []);
+  const handleSumit = async (event: SyntheticEvent) => {
+    try {
+      event.preventDefault();
 
-  const handleSumit = (event: SyntheticEvent) => {
-    event.preventDefault();
-    onSubmit({
-      type: EntryType.HealthCheck,
-      description,
-      date,
-      specialist,
-      healthCheckRating,
-      ...(diagnosisCodes && diagnosisCodes),
-    });
-  };
+      onSubmit({
+        type: EntryType.HealthCheck,
+        description,
+        date: parseDate(date?.toString(), 'date'),
+        specialist,
+        healthCheckRating: parseHealthCheckRating(healthCheckRating),
+        ...(diagnosisCodes && {
+          diagnosisCodes: parseDiagnosisCodes(diagnosisCodes),
+        }),
+      });
 
-  const onDateChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setDate(event.target.value);
-  };
-
-  const onHealthCheckRatingChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setHealthCheckRating(Number(event.target.value));
+      setDescription('');
+      setDate(dayjs());
+      setSpecialist('');
+      setDiagnosisCodes([]);
+      setHealthCheckRating('');
+    } catch (e: unknown) {
+      let message = 'something went wrong';
+      if (e instanceof Error) {
+        message = e.message;
+      }
+      showError(message);
+    }
   };
 
   const onDiagnosisCodesChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +76,20 @@ const AddHealthCheckEntryForm = ({ onSubmit, onCancel }: Props) => {
         .split(',')
         .map((val) => val.trim())
     );
+  };
+
+  const HCRMenuItems = () => {
+    const items = [];
+    for (const key in HealthCheckRating) {
+      if (isNaN(Number(key)) && HealthCheckRating.hasOwnProperty(key)) {
+        items.push(
+          <MenuItem key={key} value={HealthCheckRating[key]}>
+            {key}
+          </MenuItem>
+        );
+      }
+    }
+    return items;
   };
 
   return (
@@ -67,14 +102,16 @@ const AddHealthCheckEntryForm = ({ onSubmit, onCancel }: Props) => {
         onChange={(event) => setDescription(event.target.value)}
         value={description}
       />
-      <TextField
-        fullWidth
-        id="date"
-        label="Date"
-        variant="standard"
-        onChange={onDateChange}
-        value={date}
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          slotProps={{ textField: { variant: 'standard', fullWidth: true } }}
+          label="Date"
+          onChange={(val) => {
+            setDate(val);
+          }}
+          value={date}
+        />
+      </LocalizationProvider>
       <TextField
         fullWidth
         id="specialist"
@@ -83,21 +120,27 @@ const AddHealthCheckEntryForm = ({ onSubmit, onCancel }: Props) => {
         onChange={(event) => setSpecialist(event.target.value)}
         value={specialist}
       />
-      <TextField
-        fullWidth
-        id="healthCheckRating"
-        label="Health Check Rating"
-        variant="standard"
-        onChange={onHealthCheckRatingChange}
-        value={healthCheckRating}
-      />
+      <FormControl variant="standard" fullWidth>
+        <InputLabel id="healthCheckRatingLabel">Health Check Rating</InputLabel>
+        <Select
+          labelId="healthCheckRatingLabel"
+          id="healthCheckRating"
+          value={healthCheckRating}
+          onChange={(event): void =>
+            setHealthCheckRating(Number(event.target.value))
+          }
+          label="Health Check Rating"
+        >
+          {HCRMenuItems()}
+        </Select>
+      </FormControl>
       <TextField
         fullWidth
         id="diagnosisCodes"
         label="Diagnosis Code"
         variant="standard"
         onChange={onDiagnosisCodesChange}
-        value={() => diagnosisCodes.join(', ')}
+        value={diagnosisCodes.join(', ')}
       />
       <Box display="flex" justifyContent="space-between">
         <Button

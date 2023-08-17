@@ -44,38 +44,33 @@ const Entries = ({ entries }: Props) => {
   const ExtendEntry = (entry: Entry) => {
     switch (entry.type) {
       case EntryType.HealthCheck:
-        return <HealthCheck entry={entry} />
+        return <HealthCheck entry={entry} />;
       case EntryType.OccupationalHealthCare:
-        return <OccupationalHealthcare entry={entry} />
+        return <OccupationalHealthcare entry={entry} />;
       case EntryType.Hospital:
-        return <Hospital entry={entry} />
+        return <Hospital entry={entry} />;
       default:
         const _exhaustiveCheck: never = entry;
         return _exhaustiveCheck;
     }
-  }
+  };
 
   return (
-    <>
+    <div>
       <Typography variant="h5">Entries</Typography>
       <List>
         {entries.map((entry) => (
           <div key={entry.id}>
-            <ListItem key={entry.id} component={Paper}>
+            <ListItem component={Paper}>
               <ListItemText>
-                <Typography variant="body1">
-                  {entry.date}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  style={descriptionStyle.root}
-                >
+                <Typography variant="body1">{entry.date}</Typography>
+                <Typography variant="body1" style={descriptionStyle.root}>
                   {' ' + entry.description}
                 </Typography>
-                {
-                  ExtendEntry(entry)
-                }
-                <Typography variant="body1">diagnose by {entry.specialist}</Typography>
+                {ExtendEntry(entry)}
+                <Typography variant="body1">
+                  diagnose by {entry.specialist}
+                </Typography>
                 {entry?.diagnosisCodes && (
                   <List>
                     {entry.diagnosisCodes.map((code) => (
@@ -97,7 +92,7 @@ const Entries = ({ entries }: Props) => {
           </div>
         ))}
       </List>
-    </>
+    </div>
   );
 };
 
