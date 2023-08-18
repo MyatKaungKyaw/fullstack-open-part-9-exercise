@@ -1,13 +1,5 @@
 import { SyntheticEvent, useState, ChangeEvent } from 'react';
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from '@mui/material';
+import { Box, Button, Chip, Divider, TextField } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -15,41 +7,47 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {
   Diagnosis,
   EntryType,
-  HealthCheckEntry,
-  HealthCheckRating,
+  OccupationalHealthcareEntry,
 } from '../../types';
-import {
-  parseDate,
-  parseDiagnosisCodes,
-  parseHealthCheckRating,
-} from './utils';
+import { parseDate, parseDiagnosisCodes, parseString } from './utils';
 import dayjs, { Dayjs } from 'dayjs';
 
 interface Props {
   showError: (err: string) => void;
-  onSubmit: (entry: Omit<HealthCheckEntry, 'id'>) => void;
+  onSubmit: (entry: Omit<OccupationalHealthcareEntry, 'id'>) => void;
   onCancel: () => void;
 }
 
-const AddHealthCheckEntryForm = ({ showError, onSubmit, onCancel }: Props) => {
+const AddOccupationalHealthcareForm = ({
+  showError,
+  onSubmit,
+  onCancel,
+}: Props) => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<Dayjs | null>(dayjs());
   const [specialist, setSpecialist] = useState('');
   const [diagnosisCodes, setDiagnosisCodes] = useState<
     Array<Diagnosis['code']>
   >([]);
-  const [healthCheckRating, setHealthCheckRating] = useState<HealthCheckRating|''>('');
+  const [employerName, setEmployerName] = useState('');
+  const [sickLeaveStart, setSickLeaveStart] = useState<Dayjs | null>(null);
+  const [sickLeaveEnd, setSickLeaveEnd] = useState<Dayjs | null>(null);
 
   const handleSumit = async (event: SyntheticEvent) => {
     try {
       event.preventDefault();
 
       onSubmit({
-        type: EntryType.HealthCheck,
-        description,
-        date: parseDate(date?.toString(), 'date'),
-        specialist,
-        healthCheckRating: parseHealthCheckRating(healthCheckRating),
+        type: EntryType.OccupationalHealthCare,
+        description: parseString(description, 'Description'),
+        date: parseDate(date?.toString(), 'Date'),
+        specialist: parseString(specialist, 'Specialist'),
+        employerName: parseString(employerName, 'Employer Name'),
+        ...(sickLeaveStart &&
+          sickLeaveEnd && {
+            startDate: parseDate(sickLeaveStart?.toString(), 'Sick Leave Start Date'),
+            endDate: parseDate(sickLeaveEnd?.toString(), 'Sick Leave End Date'),
+          }),
         ...(diagnosisCodes && {
           diagnosisCodes: parseDiagnosisCodes(diagnosisCodes),
         }),
@@ -59,7 +57,6 @@ const AddHealthCheckEntryForm = ({ showError, onSubmit, onCancel }: Props) => {
       setDate(dayjs());
       setSpecialist('');
       setDiagnosisCodes([]);
-      setHealthCheckRating('');
     } catch (e: unknown) {
       let message = 'something went wrong';
       if (e instanceof Error) {
@@ -76,20 +73,6 @@ const AddHealthCheckEntryForm = ({ showError, onSubmit, onCancel }: Props) => {
         .split(',')
         .map((val) => val.trim())
     );
-  };
-
-  const HCRMenuItems = () => {
-    const items = [];
-    for (const key in HealthCheckRating) {
-      if (isNaN(Number(key)) && HealthCheckRating.hasOwnProperty(key)) {
-        items.push(
-          <MenuItem key={key} value={HealthCheckRating[key]}>
-            {key}
-          </MenuItem>
-        );
-      }
-    }
-    return items;
   };
 
   return (
@@ -117,23 +100,41 @@ const AddHealthCheckEntryForm = ({ showError, onSubmit, onCancel }: Props) => {
         id="specialist"
         label="Specialist"
         variant="standard"
-        onChange={(event) => setSpecialist(event.target.value)}
+        onChange={(event): void => setSpecialist(event.target.value)}
         value={specialist}
       />
-      <FormControl variant="standard" fullWidth>
-        <InputLabel id="healthCheckRatingLabel">Health Check Rating</InputLabel>
-        <Select
-          labelId="healthCheckRatingLabel"
-          id="healthCheckRating"
-          value={healthCheckRating}
-          onChange={(event): void =>
-            setHealthCheckRating(Number(event.target.value))
-          }
-          label="Health Check Rating"
-        >
-          {HCRMenuItems()}
-        </Select>
-      </FormControl>
+      <TextField
+        fullWidth
+        id="employerName"
+        label="Employer Name"
+        variant="standard"
+        onChange={(event): void => setEmployerName(event.target.value)}
+        value={employerName}
+      />
+      <Box sx={{ height: 20 }} />
+      <Divider>
+        <Chip label="Sick Leave" />
+      </Divider>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          slotProps={{ textField: { variant: 'standard', fullWidth: true } }}
+          label="startDate"
+          onChange={(val): void => setSickLeaveStart(val)}
+          value={sickLeaveStart}
+        />
+        <DatePicker
+          slotProps={{ textField: { variant: 'standard', fullWidth: true } }}
+          label="endDate"
+          onChange={(val): void => setSickLeaveEnd(val)}
+          value={sickLeaveEnd}
+        />
+      </LocalizationProvider>
+      <Box sx={{ height: 20 }} />
+      <Divider>
+        <Chip />
+        <Chip />
+        <Chip />
+      </Divider>
       <TextField
         fullWidth
         id="diagnosisCodes"
@@ -164,4 +165,4 @@ const AddHealthCheckEntryForm = ({ showError, onSubmit, onCancel }: Props) => {
   );
 };
 
-export default AddHealthCheckEntryForm;
+export default AddOccupationalHealthcareForm;

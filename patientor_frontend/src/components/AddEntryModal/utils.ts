@@ -1,4 +1,4 @@
-import { Diagnosis, HealthCheckRating } from '../../types';
+import { Diagnosis, HealthCheckRating, EntryType } from '../../types';
 
 const isDate = (date: string): boolean => {
   return Boolean(Date.parse(date));
@@ -6,6 +6,13 @@ const isDate = (date: string): boolean => {
 
 const isString = (text: unknown): text is string => {
   return typeof text === 'string' || text instanceof String;
+};
+
+export const parseString = (str: unknown, key: string): string => {
+  if (isString(str) && str.trim() !=='') {
+    return str.trim();
+  }
+  throw new Error(`Incorrect or missing ${key}`);
 };
 
 export const parseDate = (date: unknown, key: string): string => {
@@ -40,3 +47,19 @@ export const parseHealthCheckRating = (rating: unknown): HealthCheckRating => {
   }
   throw new Error('Incorrect or missing HealthCheckRating');
 };
+
+const isEntryType = (type: unknown): type is EntryType => {
+  return (
+    typeof type === 'string' &&
+    Object.values(EntryType)
+      .map((h) => h.toString())
+      .includes(type)
+  );
+};
+
+export const parseEntryType = (type: unknown):EntryType => {
+  if(isEntryType(type)){
+    return type;
+  }
+  throw new Error('Incorrect or missing EntryType');
+}

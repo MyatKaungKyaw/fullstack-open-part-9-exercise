@@ -1,21 +1,28 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Typography } from '@mui/material';
+import { Alert, Select, SelectChangeEvent, Typography } from '@mui/material';
 import FemaleRoundedIcon from '@mui/icons-material/FemaleRounded';
 import MaleRoundedIcon from '@mui/icons-material/MaleRounded';
-import { Gender, NewEntry, Patient } from '../../types';
+import { EntryType, Gender, NewEntry, Patient } from '../../types';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
 
 import patientService from '../../services/patients';
 import Entries from '../EntryListPage';
 import AddEntryModal from '../AddEntryModal/index';
+import { parseEntryType } from '../AddEntryModal/utils';
 
 const SinglePatientPage = () => {
   const [patient, setPatient] = useState<Patient>();
   const [error, setError] = useState<string>();
   const [entryModalOpen, setEntryModalOpen] = useState<boolean>(false);
+  const [entryFormSelect, setEntryFormSelect] = useState<EntryType | ''>('');
 
   const { id } = useParams();
+
+  const entryTypeArr = Object.entries(EntryType);
 
   useEffect(() => {
     if (typeof id === 'string') {
@@ -25,15 +32,11 @@ const SinglePatientPage = () => {
     }
   }, [id]);
 
-  if (!id && typeof id !== 'string')
-    return (
-      <div>
-        <Typography>Provided id is not valid</Typography>
-      </div>
-    );
-
   const submitNewEntry = async (entry: NewEntry) => {
     try {
+      if (id == null) {
+        throw new Error(`Can't add entry with unidentify patient id.`);
+      }
       const newEntry = await patientService.createEntries(id, entry);
 
       if (patient == null) return;
@@ -61,14 +64,35 @@ const SinglePatientPage = () => {
     }
   };
 
+  const entryFormSelectChangeHandler = (event: SelectChangeEvent) => {
+    try {
+      const entryType = parseEntryType(event.target.value);
+      setEntryFormSelect(entryType);
+      setEntryModalOpen(true);
+      setError(undefined);
+    } catch (e: unknown) {
+      let message = 'something went wrong';
+      if (e instanceof Error) {
+        message = e.message;
+      }
+      showError(message);
+    }
+  };
+
   const closeEntryModal = () => {
     setEntryModalOpen(false);
+    setEntryFormSelect('');
     setError(undefined);
   };
 
-  const openEntryModal = (): void => setEntryModalOpen(true);
-
   const showError = (err: string): void => setError(err);
+
+  if (!id && typeof id !== 'string')
+    return (
+      <div>
+        <Typography>Provided id is not valid</Typography>
+      </div>
+    );
 
   if (typeof patient === 'undefined') {
     return (
@@ -95,23 +119,33 @@ const SinglePatientPage = () => {
         <Typography variant="body1">date of birth: {patient.ssn}</Typography>
       )}
       <Typography variant="body1">occupation: {patient.occupation}</Typography>
-      {entryModalOpen && (
+      <FormControl sx={{ m: 1, minWidth: 155 }}>
+        <InputLabel id="demo-simple-select-autowidth-label">
+          Add New Entry
+        </InputLabel>
+        <Select
+          labelId="demo-simple-select-autowidth-label"
+          id="demo-simple-select-autowidth"
+          value={entryFormSelect}
+          onChange={entryFormSelectChangeHandler}
+          autoWidth
+          label="Add New Entry"
+        >
+          {entryTypeArr.map(([key, value]) => (
+            <MenuItem key={value} value={value}>
+              {value}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      {error && <Alert severity="error">{error}</Alert>}
+      {entryModalOpen && entryFormSelect !== '' && (
         <AddEntryModal
           onClose={closeEntryModal}
           onSubmit={submitNewEntry}
           showError={showError}
+          entryType={entryFormSelect}
         />
-      )}
-      {error && <Alert severity="error">{error}</Alert>}
-      {!entryModalOpen && (
-        <Button
-          variant="contained"
-          onClick={() => {
-            openEntryModal();
-          }}
-        >
-          Add New Entry
-        </Button>
       )}
       {patient.entries.length !== 0 && <Entries entries={patient.entries} />}
     </>
